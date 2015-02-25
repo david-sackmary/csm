@@ -1,0 +1,269 @@
+dave
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# chkconfig --list chargen-dgram chargen-dgram: off
+# chkconfig --list chargen-stream chargen-stream: off
+# chkconfig --list daytime-dgram daytime-dgram: off
+# chkconfig --list daytime-stream daytime-stream: off
+# chkconfig --list echo-dgram echo-dgram: off
+# chkconfig --list echo-stream echo-stream: off
+# chkconfig --list syslogsyslog 0:off 1:off 2:off 3:off 4:off 5:off 6:off# chkconfig --list rsyslogrsyslog 0:off 1:off 2:on 3:on 4:on 5:on 6:off
+# chkconfig --list tcpmux-servertcpmux-server: off
+# find / -type d ( -perm -0002 -a ! -perm -1000 ) 2>/dev/null
+# grep  /etc/fstabVerify that nodev is an option
+# grep  /etc/fstabVerify that noexec is an option
+# grep  /etc/fstabVerify that nosuid is an option
+# grep '$ModLoad' /etc/rsyslog.conf$ModLoad imtcp.so# grep '$InputTCPServerRun' /etc/rsyslog.conf$InputTCPServerRun 514
+# grep "" /usr/share/gdm/themes/RHEL/RHEL.xml
+# grep "^umask 077" /etc/bashrcumask 077# grep "^umask 077" /etc/profileumask 077
+# grep /home /etc/fstab /home ext3
+# grep /home /etc/fstabVerify that nodev is an option# mount | grep /home on  type  (nodev) Note: There may be other options listed for this filesystem
+# grep /var/log /etc/fstab /var/log ext3
+# grep /var/log/audit /etc/fstab /var/log/audit ext3
+# grep pam_wheel.so /etc/pam.d/suauth required pam_wheel.so use_uid# grep wheel /etc/groupwheel:x:10:root,
+# grep PASS_MAX_DAYS /etc/login.defsPASS_MAX_DAYS 90# chage --list Maximum number of days between password change: 90
+# grep PASS_MIN_DAYS /etc/login.defsPASS_MIX_DAYS 7# chage --list Miniumum number of days between password change: 7
+# grep PASS_WARN_AGE /etc/login.defsPASS_WARN_AGE 7# chage --list Number of days of warning before password expires: 7
+# grep root /etc/passwd | cut -f4 -d:0
+# grep SYSLOGD_OPTIONS /etc/sysconfig/syslog-m 0 -r -s example.com (if designated as a log host)-m 0 (if not designated as a log host)
+# useradd -D | grep INACTIVE
+#!/bin/bash defUsers="root bin daemon adm lp sync shutdown halt mail news uucp operator games gopher ftp nobody nscd vcsa rpc mailnull smmsp pcap ntp dbus avahi sshd rpcuser nfsnobody haldaemon avahi-autoipd distcache apache oprofile webalizer dovecot squid named xfs gdm sabayon"/bin/cat /etc/passwd | while:do x=`line` if [ "$x" = "" ] then break fi userid=`echo "$x" | cut -f1 -d':'` found=0 for n in $defUsers do if [ $userid = "$n" ] then found=1 break fi done if [ $found -eq 1 ] then continue fi groupid=`echo "$x" | /bin/cut -f4 -d':'` /bin/cat /etc/group | while : do x=`line` if [ "$x" = "" ] then echo "Groupid $groupid does not exist in /etc/group, but is used by $userid" break fi y=`echo $x | cut -f3 -d":"` if [ $y -eq $groupid ] then break fi donedone
+#!/bin/bash echo "The Output for the Audit of Control 10.13 - Check That Users Are Defined Home Directories is"defUsers="root bin daemon adm lp sync shutdown halt mail news uucp operator games gopher ftp nobody nscd vcsa rpc mailnull smmsp pcap ntp dbus avahi sshd rpcuser nfsnobody haldaemon avahi-autoipd distcache apache oprofile webalizer dovecot squid named xfs gdm sabayon" cat /etc/passwd | awk -F: '{ print $1 " " $6 }' | while read user dir do found=0 for n in $defUsers do if [ "$user" = "$n" ] then found=1 break fi done if [ $found -eq 0 ] then if [ -z "$dir" ] then echo "User $user has no home directory." fi fi done
+#!/bin/bash echo "The Output from the Audit of Control 9.20 - Check for Presence of User .netrc Files is"for dir in `logins -ox | /bin/awk -F: '($8 == "PS") { print $6 }'`; do for file in $dir/.netrc; do if [ ! -h "$file" -a -f "$file" ]; then echo ".netrc file $file exists" fi donedone
+#!/bin/bashfor dir in `/bin/cat /etc/passwd | /bin/egrep -v '(root|halt|sync|shutdown) | /bin/awk -F: '($8 == "PS" & do dirperm=`/bin/ls -ld $dir | /bin/cut -f1 -d" "` if [ `echo $dirperm | /bin/cut -c6 ` != "-" ]; then echo "Group Write permission set on directory $dir" fi if [ `echo $dirperm | /bin/cut -c8 ` != "-" ]; then echo "Other Read permission set on directory $dir" fi if [ `echo $dirperm | /bin/cut -c9 ` != "-" ]; then echo "Other Write permission set on directory $dir" fi if [ `echo $dirperm | /bin/cut -c10 ` != "-" ]; then echo "Other Execute permission set on directory $dir" fidone
+#!/bin/bashfor dir in `/bin/cat /etc/passwd | /bin/egrep -v '(root|halt|sync|shutdown)' | /bin/awk -F: '($8 == "PS" & do for file in $dir/.rhosts; do if [ ! -h "$file" -a -f "$file" ]; then echo ".rhosts file in $dir" fi donedone
+#!/bin/bashfor dir in `/bin/cat /etc/passwd | /bin/egrep -v '(root|sync|halt|shutdown)' | /bin/awk -F: '($8 == "PS" & do for file in $dir/.[A-Za-z0-9]*; do if [ ! -h "$file" -a -f "$file" ]; then fileperm=`/bin/ls -ld $file | /bin/cut -f1 -d" "` if [ `echo $fileperm | /bin/cut -c6 ` != "-" ]; then echo "Group Write permission set on file $file" fi if [ `echo $fileperm | /bin/cut -c9 ` != "-" ]; then echo "Other Write permission set on file $file" fi fi donedone
+#!/bin/bashfor dir in `/bin/cat /etc/passwd | /bin/egrep -v '(root|sync|halt|shutdown)' | /bin/awk -F: '($8 == "PS" & do for file in $dir/.netrc; do if [ ! -h "$file" -a -f "$file" ]; then fileperm=`/bin/ls -ld $file | /bin/cut -f1 -d" "` if [ `echo $fileperm | /bin/cut -c5 ` != "-" ] then echo "Group Read set on $file" fi if [ `echo $fileperm | /bin/cut -c6 ` != "-" ] then echo "Group Write set on $file" fi if [ `echo $fileperm | /bin/cut -c7 ` != "-" ] then echo "Group Execute set on $file" fi if [ `echo $fileperm | /bin/cut -c8 ` != "-" ] then echo "Other Read set on $file" fi if [ `echo $fileperm | /bin/cut -c9 ` != "-" ] then echo "Other Write set on $file" fi if [ `echo $fileperm | /bin/cut -c10 ` != "-" ] then echo "Other Execute set on $file" fi fi donedone
+#!/bin/bashfor i in `/bin/egrep '(ext3|ext2)' /etc/fstab | /bin/awk '{print $2}'`do /usr/bin/find $i -xdev -type f -perm -2000 -printdone
+#!/bin/bashfor i in `/bin/egrep '(ext3|ext2)' /etc/fstab | /bin/awk '{print $2}'`do /usr/bin/find $i -xdev -type f -perm -4000 -printdone -print
+#!/bin/bashfor i in `/bin/egrep '(ext3|ext2)' /etc/fstab | /bin/awk '{print $2}'`do /usr/bin/find $i -xdev ( -type f -o -type d) -nogroup -printdone
+#!/bin/bashfor i in `/bin/egrep '(ext3|ext2)' /etc/fstab | /bin/awk '{print $2}'`do /usr/bin/find $i -xdev ( -type f -o -type d) -nouser -printdone
+#!/bin/bashfor i in `/bin/egrep '(ext4|ext3|ext2)' /etc/fstab | /bin/awk '{print $2}'`do/usr/bin/find $i -xdev -type f -perm -0002 -printdone
+#!/bin/bashif [ "`echo $PATH | /bin/grep :: `" != "" ]; then echo "Empty Directory in PATH (::)"fiif [ "`echo $PATH | bin/grep :$`" != "" ]; then echo "Trailing : in PATH"fip=`echo $PATH | /bin/sed -e 's/::/:/' -e 's/:$//' -e 's/:/ /g'`set -- $pwhile [ "$1" != "" ]; do if [ "$1" = "." ]; then echo "PATH contains ." shift continue fi if [ -d $1 ]; then dirperm=`/bin/ls -ldH $1 | /bin/cut -f1 -d" "` if [ `echo $dirperm | /bin/cut -c6 ` != "-" ]; then echo "Group Write permission set on directory $1" fi if [ `echo $dirperm | /bin/cut -c9 ` != "-" ]; then echo "Other Write permission set on directory $1" fi dirown=`ls -ldH $1 | awk '{print $3}'` if [ "$dirown" != "root" ] ; then echo $1 is not owned by root fi else echo $1 is not a directory fi shiftdone
+#grep /var /etc/fstab  /var ext3
+Check the /etc/securetty for any insecure terminals:# cat /etc/securetty
+For each __ listed in the /etc/rsyslog.conf file, perform the following command and verify that the __:__ is root:root and the permissions are 0600 (for sites that have not implemented a secure group) and root:securegrp with permissions of 0640 (for sites that have implemented a secure group):# ls -l __
+For each LOGFILE listed in the /etc/syslog.conf file, perform the following commands and verify that the owner:group is root:root and the permissions are 0600 (for sites that do not use a security group) and root:__ with permissions of 0640 (for sites that use a secure group):# ls -l __
+If the permissions of the /etc/hosts.allow file are incorrect, run the following command to correct them:# /bin/chmod 644 /etc/hosts.allow
+If the user and group ownership of the /etc/ssh/sshd_config file are incorrect, run the following command to correct them:# chown root:root /etc/ssh/sshd_config If the permissions are incorrect, run the following command to correct them:# chmod 644 /etc/ssh/sshd_config
+Perform the following command and make sure that the MTA is listening on the loopback address (127.0.0.1):# netstat -an | grep LIST | grep 25tcp 0 0 127.0.0.1:25 0.0.0.0:* LISTEN
+Perform the following command to determine if there are any packages that need to be updated:# yum check-update
+Perform the following command to verify that rsyslog is installed. # yum list rsyslogrsyslog.
+Perform the following commands to check if OS information is set to be displayed in the system login banners:# egrep '(\v|\r|\m|\s)' /etc/issue# egrep '(\v|\r|\m|\s)' /etc/motd# egrep'(\v|\r|\m|\s)' /etc/issue.net
+Perform the following to determine if a password is required to set command line boot parameters:# grep "^password" /etc/grub.confpassword --md5
+Perform the following to determine if accepting source routed packets is disabled.# /sbin/sysctl net.ipv4.conf.all.accept_source_routenet.ipv4.conf.all.accept_source_route = 0# /sbin/sysctl net.ipv4.conf.default.accept_source_routenet.ipv4.conf.default.accept_source_route = 0
+Perform the following to determine if all ICMP echo and timestamp requests to broadcast and multicast addresses will be ignored.# /sbin/sysctl net.ipv4.icmp_echo_ignore_broadcastsnet.ipv4.icmp_echo_ignore_broadcasts = 1
+Perform the following to determine if apache is disabled.# yum list httpdhttpd.
+Perform the following to determine if at jobs are restricted.# stat -L /etc/at.deny > /dev/null# stat -L -c "%a %u %g" /etc/at.allow | egrep ".00 0 0" If the above command emits no output then the system is not configured as recommended.
+Perform the following to determine if Avahi is disabled.# chkconfig --list avahi-daemonavahi-daemon: 0:off 1:off 2:off 3:off 4:off 5:off 6:off
+Perform the following to determine if Avahi's port is restricted:# grep "^disallow-other-stacks=yes" /etc/avahi/avahi-daemon.confdisallow-other-stacks=yes
+Perform the following to determine if bogus messages will be ignored.# /sbin/sysctl net.ipv4.icmp_ignore_bogus_error_responsesnet.ipv4.icmp_ignore_bogus_error_responses = 1
+Perform the following to determine if core dumps are restricted.# grep "hard core" /etc/security/limits.conf* hard core 0# sysctl fs.suid_dumpablefs.suid_dumpable = 0
+Perform the following to determine if cron is enabled.# chkconfig --list crondcron: 0:off 1:off 2:on 3:on 4:on 5:on 6:off
+Perform the following to determine if CUPS is disabled.# chkconfig --list cupschkconfig: 0:off 1:off 2:off 3:off 4:off 5:off 6:off
+Perform the following to determine if DCCP is disabled.# grep "install dccp /bin/true" /etc/modprobe.confinstall dccp /bin/true
+Perform the following to determine if DHCP is disabled.# yum list dhcpdhcp.
+Perform the following to determine if DNS is disabled on the system.# yum list bindbind.
+Perform the following to determine if dovecot is installed on the system.# yum list dovecotdovecot.
+Perform the following to determine if ExecShield is enabled.# sysctl kernel.exec-shieldkernel.exec-shield = 1
+Perform the following to determine if FTP is disabled.# yum list vsftpdvsftpd.
+Perform the following to determine if ICMP redirect messages will be rejected.# /sbin/sysctl net.ipv4.conf.all.accept_redirectsnet.ipv4.conf.all.accept_redirects = 0# /sbin/sysctl net.ipv4.conf.default.accept_redirectsnet.ipv4.conf.default.accept_redirects = 0
+Perform the following to determine if IP6Tables is enabled:# chkconfig --list ip6tablesip6tables 0:off 1:off 2:on 3:on 4:on 5:on 6:off
+Perform the following to determine if IPtables is enabled.# chkconfig --list iptablesiptables 0:off 1:off 2:on 3:on 4:on 5:on 6:off
+Perform the following to determine if IPv6 is enabled# grep ipv6 /etc/modprobe.confoptions ipv6 "disable=1"
+Perform the following to determine if IPv6 redirects are disabled.# /sbin/sysctl net.ipv6.conf.all.accept_redirectsnet.ipv6.conf.all.accept_redirect = 0# /sbin/sysctl net.ipv6.conf.default.accept_redirectsnet.ipv6.conf.default.accept_redirect = 0
+Perform the following to determine if LDAP is running.# yum list openldap-serversopenldap-servers.
+Perform the following to determine if net-snmp is installed on the system.# yum list net-snmpnet.snmp.
+Perform the following to determine if net.ipv4.ip_forward is enabled on the system.# /sbin/sysctl net.ipv4.ip_forwardnet.ipv4.ip_forward = 0
+Perform the following to determine if NFS is disabled.# chkconfig --list nfslocknfslock: 0:off 1:off 2:off 3:off 4:off 5:off 6:off# chkconfig --list rpcgssdrpcgssd: 0:off 1:off 2:off 3:off 4:off 5:off 6:off# chkconfig --list rpcidmapdrpcidmapd: 0:off 1:off 2:off 3:off 4:off 5:off 6:off# chkconfig --list portmapportmap: 0:off 1:off 2:off 3:off 4:off 5:off 6:off
+Perform the following to determine if pam_deny.so is a requisite in the service. Perform this command for each PAM-aware authentication service.# grep "^auth" /etc/pam.d/sshd auth requisite pam_deny.so
+Perform the following to determine if PROMPT is disabled:# grep "^PROMPT=" /etc/sysconfig/initPROMPT=no
+Perform the following to determine if publishing is disabled.# grep "^disable-publishing=yes" /etc/avahi/avahi-daemon.confdisable-publishing=yes
+Perform the following to determine if publishing is restricted:# grep "^disable-publishing=yes" /etc/avahi/avahi-daemon.confdisable-publishing=yes# grep "^publish" /etc/avahi/avahi-daemon.confpublish-address=nopublish-binfo=nopublish-workstation=nopublish-domain=no
+Perform the following to determine if RDS is disabled.# grep "install rds /bin/true" /etc/modprobe.confinstall rds /bin/true
+Perform the following to determine if rsh is instaled on the system.# yum list rshrsh.
+Perform the following to determine if rsh-server is installed on the system.# yum list rsh-serverrsh-server.
+Perform the following to determine if samba is installed on the system.# yum list sambasamba.
+Perform the following to determine if SCTP is disabled.# grep "install sctp /bin/true" /etc/modprobe.confinstall sctp /bin/true
+Perform the following to determine if send packet redirects is disabled.# /sbin/sysctl net.ipv4.conf.all.send_redirectsnet.ipv4.conf.all.send_redirects = 0# /sbin/sysctl net.ipv4.conf.default.send_redirectsnet.ipv4.conf.default.send_redirects = 0
+Perform the following to determine if squid is installed on the system.# yum list squidsquid.__ __ __
+Perform the following to determine if suspicious packets are logged.# /sbin/sysctl net.ipv4.conf.all.log_martiansnet.ipv4.conf.all.log_martians = 1
+Perform the following to determine if talk is installed on the system.# yum list talktalk.
+Perform the following to determine if talk-server is installed on the system:# yum list talk-servertalk.
+Perform the following to determine if TCP SYN Cookies is enabled.# /sbin/sysctl net.ipv4.tcp_syncookiesnet.ipv4.tcp_syncookies = 1
+Perform the following to determine if TCP Wrappers is enabled.# yum list tcp-wrapperstcp_wrappers.
+Perform the following to determine if tftp is installed on the system.# yum list tftptftp.
+Perform the following to determine if tftp-server is installed on the system.# yum list tftp-servertftp-server.
+Perform the following to determine if the /etc/anacrontab file has the correct permissions.# stat -L -c "%a %u %g" /etc/anacrontab | egrep ".00 0 0" If the above command emits no output then the system is not configured as recommended.
+Perform the following to determine if the /etc/cron.d directory has the correct permissions.# stat -L -c "%a %u %g" /etc/cron.d | egrep ".00 0 0" If the above command emits no output then the system is not configured as recommended.
+Perform the following to determine if the /etc/cron.daily directory has the correct permissions.# stat -L -c "%a %u %g" /etc/cron.daily | egrep ".00 0 0" If the above command emits no output then the system is not configured as recommended.
+Perform the following to determine if the /etc/cron.hourly file has the correct permissions.# stat -L -c "%a %u %g" /etc/cron.hourly | egrep ".00 0 0" If the above command emits no output then the system is not configured as recommended.
+Perform the following to determine if the /etc/cron.monthly directory has the correct permissions.# stat -L -c "%a %u %g" /etc/cron.monthly | egrep ".00 0 0" If the above command emits no output then the system is not configured as recommended.
+Perform the following to determine if the /etc/cron.weekly directory has the correct permissions.# stat -L -c "%a %u %g" /etc/cron.weekly | egrep ".00 0 0" If the above command emits no output then the system is not configured as recommended.
+Perform the following to determine if the /etc/crontab file has the correct permissions.# stat -L -c "%a %u %g" /etc/crontab | egrep ".00 0 0" If the above command emits no output then the system is not configured as recommended.
+Perform the following to determine if the /etc/grub.conf file has the correct ownership:# stat -L -c "%u %g" /etc/grub.conf | egrep "^0 0$" If the above command emits no output then the system is not configured as recommended.
+Perform the following to determine if the /etc/grub.conf file permissions are correct:# stat -L -c "%a" /etc/grub.conf | egrep ".00" If the above command emits no output then the system is not configured as recommended.
+Perform the following to determine if the appropriate system logs are rotated.# grep '{' /etc/logrotate.d/syslog/var/log/messages /var/log/secure /var/log/maillog /var/log/spooler /var/log/boot.log /var/log/cron {
+Perform the following to determine if the daemon umask is set.# grep umask /etc/sysconfig/initumask 027
+Perform the following to determine if the password-hashing algorithm is set to SHA-512:# authconfig --test | grep hashing | grep sha512 If the above command emits no output then the system is not configured as recommended
+Perform the following to determine if the remediation in the section has been performed:# ls -l /etc/cron.deny[no output returned]# ls -l /etc/at.deny[no output returned]# ls -l /etc/cron.allow-rw------- 1 root root  /etc/cron.allow# ls -l /etc/at.allow-rw------- 1 root root  /etc/at.allow
+Perform the following to determine if the system is configured as recommended:# grep -e "^/tmp" /etc/fstab | grep /var/tmp/tmp /var/tmp none bind 0 0# mount | grep -e "^/tmp" | grep /var/tmp/tmp on /var/tmp type none (rw,bind) If the above commands emit no ouput then the system is not configured as recommended.
+Perform the following to determine if the system is disabled from accepting router advertisements:# /sbin/sysctl net.ipv6.conf.all.accept_ranet.ipv6.conf.all.accept_ra = 0# /sbin/sysctl net.ipv6.conf.default.accept_ranet.ipv6.conf.default.accept_ra = 0
+Perform the following to determine if the telnet package is on the system.# yum list telnettelnet.
+Perform the following to determine if the telnet-server package is on the system.# yum list telnet-servertelnet-server.
+Perform the following to determine if the TTL setting is correct.# grep "^check-response-ttl=yes" /etc/avahi/avahi-daemon.confcheck-response-ttl=yes
+Perform the following to determine if TIPC is disabled.# grep "install tipc /bin/true" /etc/modprobe.confinstall tipc /bin/true
+Perform the following to determine if virtual memory is randomized.# sysctl kernel.randomize_va_spacekernel.randomize_va_space = 2
+Perform the following to determine if wireless interfaces are active.# ifconfig -a Validate that all interfaces using wireless are down.
+Perform the following to determine if X Windows is installed on the system.# grep "^id:" /etc/inittabid:3:initdefault# yum grouplist "X Window System"loaded plugins: rhnplugin, securitySeeting up Group ProcessAvailable Groups: X Window SystemDone
+Perform the following to determine if XD/NX support is enabled.# yum list kernel-PAEkernel-PAE.  installed
+Perform the following to determine if ypbind is installed on the system.# yum list ypbindypbind.
+Perform the following to determine if ypserv is installed on the system.# yum list ypservypserv.
+Perform the following to determine or prelinking is disabled.# grep PRELINKING /etc/sysconfig/prelinkPRELINKING=no
+Perform the following to determine the current setting for reuse of older passwords:# grep "remember" /etc/pam.d/system-authpassword sufficient pam_unix.so remember=5
+Perform the following to determine the current settings for userID lockout.# grep "pam_tally2" /etc/pam.d/system-authauth required pam_tally2.so deny=5 onerr=fail
+Perform the following to determine the current settings in the pam_cracklib.so file.# grep pam_cracklib.so /etc/pam.d/system-authpassword required pam_cracklib.so try_first_pass retry=3 minlen=14 dcredit=-1 ucredit=-1 ocredit=-1 lcredit=-1
+Perform the following to determine which protocol is configured on your system.# grep use-ipv /etc/avahi/avahi-daemon.confuse-ipv6 = noIf ipv4 is only used.Use-ipv4 = noIf ipv6 is only used.
+Perform the following to determine# grep "sulogin" /etc/inittab~:S:wait:/sbin/sulogin
+Perform the following to verify integrity of installed packages.# rpm -qVa | awk '$2 != "c" { print $0}'If any output shows up, you may have an integrity issue with that package
+Review the /etc/rsyslog.conf file and verify that logs are sent to a central host (where logfile.example.com is the name of your central log host).# grep "^*.*[^I][^I]*@" /etc/rsyslog.conf*.* @@loghost.example.com
+Review the /etc/syslog.conf file and verify that logs are sent to a central host (where logfile.example.com is the name of your central log host).# grep "^*.*[^I][^I]*@" /etc/syslog.conf*.* @loghost.example.com
+Review the contents of the /etc/rsyslog.conf file to ensure appropriate logging is set. In addition, perform the following command and ensure that the log files are logging information:# ls -l /var/log/
+Review the contents of the /etc/syslog.conf file to ensure appropriate logging is set. In addition, perform the following command and ensure that the log files are logging information:# ls -l /var/log
+Run the following command and verify that no output is returned:# /bin/cat /etc/shadow | /bin/awk -F : '($2 == "" ) { print $1 " does not have a password "}'
+Run the following command and verify that no output is returned:# /bin/grep '^+:' /etc/group
+Run the following command and verify that no output is returned:# /bin/grep '^+:' /etc/passwd
+Run the following command and verify that no output is returned:# /bin/grep '^+:' /etc/shadow
+Run the following command and verify that only the word "root" is returned:# /bin/cat /etc/passwd | /bin/awk -F: '($2 == 0) { print $1 }'root
+Run the following command to determine the current OS level:# uname -ror# cat /etc/redhat-release
+Run the following command to determine the permissions on the /etc/group file.# /bin/ls -l /etc/group-rw-r--r-- 1 root root 762 Sep 23 002 /etc/group
+Run the following command to determine the permissions on the /etc/group file.# /bin/ls -l /etc/group-rw-r--r-- 1 root root 762 Sep 23 002 /etc/group
+Run the following command to determine the permissions on the /etc/gshadow file.# /bin/ls -l /etc/gshadow-r-------- 1 root root 633 Sep 23 2002 /etc/gshadow
+Run the following command to determine the permissions on the /etc/gshadow file.# /bin/ls -l /etc/gshadow-r-------- 1 root root 633 Sep 23 2002 /etc/gshadow
+Run the following command to determine the permissions on the /etc/hosts.deny file.# /bin/ls -l /etc/hosts.deny-rw-r--r-- 1 root root 2055 Jan 30 16:30 /etc/hosts.deny
+Run the following command to determine the permissions on the /etc/passwd file.# /bin/ls -l /etc/passwd-rw-r--r-- 1 root root 2055 Jan 30 16:30 /etc/passwd
+Run the following command to determine the permissions on the /etc/shadow file.# /bin/ls -l /etc/shadow-r-------- 1 root root 633 Sep 23 2002 /etc/shadow
+Run the following command to determine the permissions on the /etc/shadow file.# /bin/ls -l /etc/shadow-r-------- 1 root root 762 Sep 23 2002 /etc/shadow
+Run the following command to determine the user and group ownership on the /etc/passwd file. # /bin/ls -l /etc/passwd-rw-r--r-- 1 root root 762 Sep 23 002 /etc/passwd
+Run the following command to ensure that the system has the Red HatGPG key properly installed:# rpm -q --queryformat "%{SUMMARY}n" gpg-pubkey
+Run the following command to verify that gpgcheck is set to 1 in all occurrences of the /etc/yum.conf file:# grep gpgcheck /etc/yum.confgpgcheck=1
+Run the following command to verify the contents of the /etc/hosts.allow file.# CAT /ETC/HOSTS.ALLOW[contents will vary, depending on your network configuration]
+Run the following commands and ensure that the files exist and have the correct permissions.# /bin/ls -l /etc/motd-rw-r--r-- 1 root root 2055 Jan 30 16:30 /etc/motd# ls /etc/issue-rw-r--r-- 1 root root 2055 Jan 30 16:30 /etc/issue# ls /etc/issue.net-rw-r--r-- 1 root root 2055 Jan 30 16:30 /etc/issue.netThe commands above simply validate the presence of the /etc/motd, /etc/issue and /etc/issue.net files. Review the contents of these files with the "cat" command and ensure that it is appropriate for your organization.
+Run the following commands to determine if the system is configured as recommended.# grep /tmp /etc/fstab | grep nodev# mount | grep /tmp | grep nodev If either command emits no output then the system is not configured as recommended.
+Run the following commands to determine if the system is configured as recommended.# grep /tmp /etc/fstab | grep noexec# mount | grep /tmp | grep noexec If either command emits no output then the system is not configured as recommended.
+Run the following commands to determine if the system is configured as recommended.# grep /tmp /etc/fstab | grep nosuid# mount | grep /tmp | grep nosuid If either command emits no output then the system is not configured as recommended.
+Run the following commands to determine if the system is in configured as recommended:# grep /dev/shm /etc/fstab | grep nodev# mount | grep /dev/shm | grep nodev If either command emits no ouput then the system is not configured as recommended.
+Run the following commands to determine if the system is in configured as recommended:# grep /dev/shm /etc/fstab | grep noexec# mount | grep /dev/shm | grep noexec If either command emits no ouput then the system is not configured as recommended.
+Run the following commands to determine if the system is in configured as recommended:# grep /dev/shm /etc/fstab | grep nosuid# mount | grep /dev/shm | grep nosuid If either command emits no ouput then the system is not configured as recommended.
+Run the following script to determine if any system accounts can be accessed:egrep -v "^+" /etc/passwd | awk -F: '($1!="root" && $1!="sync" && $1!="shutdown" && $1!="halt" && $3
+The following script checks for the correct parameters on restrict default and restrict -6 default:# grep "restrict default" /etc/ntp.confrestrict default kod nomodify nopeer notrap noquery# grep "restrict -6 default" /etc/ntp.confrestrict -6 default kod nomodify nopeer notrap noquery Perform the following to determine if the system is configured to use an NTP Server and that the ntp daemon is running as an unprivileged user.# grep "^server" /etc/ntp.confserver # grep "ntp:ntp" /etc/sysconfig/ntpdOPTIONS="-u ntp:ntp -p /var/run/ntpd.pid"
+This script checks for the presence of .forward files that may be in violation of the site security policy.#!/bin/bash echo "The Output from the Audit of Control 9.21 - Check for Presence of User .forward Files is"for dir in `logins -ox | /bin/awk -F: '($8 == "PS") { print $6 }'`; do for file in $dir/.forward; do if [ ! -h "$file" -a -f "$file" ]; then echo ".forward file $file exists" fi donedone
+This script checks to make sure all group names in the /etc/group file are unique.#!/bin/bash echo "The Output for the Audit of Control 9.19 - Check for Duplicate Group Names is"cat /etc/group | cut -f1 -d":" | /bin/sort -n | /usr/bin/uniq -c | while read x ; do [ -z "${x}" ] & then gids=`/bin/gawk -F: '($1 == n) { print $3 }' n=$2  /etc/group | xargs` echo "Duplicate Group Name ($2): ${gids}" fidone
+This script checks to make sure all UIDs in the /etc/group file are unique. You can also use the /usr/sbin/grpck command to check for other inconsistencies in the /etc/group file.#!/bin/bash echo "The Output for the Audit of Control 9.16 - Check for Duplicate GIDs is"/bin/cat /etc/group | /bin/cut -f3 -d":" | /bin/sort -n | /usr/bin/uniq -c | while read x ; do [ -z "${x}" ] & then grps=`/bin/gawk -F: '($3 == n) { print $1 }' n=$2  /etc/group | xargs` echo "Duplicate GID ($2): ${grps}" fidone
+This script checks to make sure all UIDs in the /etc/passwd file are unique.#!/bin/bash echo "The Output for the Audit of Control 9.15 - Check for Duplicate UIDs is"/bin/cat /etc/passwd | /bin/cut -f3 -d":" | /bin/sort -n | /usr/bin/uniq -c | while read x ; do [ -z "${x}" ] & then users=`/bin/gawk -F: '($3 == n) { print $1 }' n=$2  /etc/passwd | /usr/bin/xargs` echo "Duplicate UID ($2): ${users}" fidone
+This script checks to make sure all user names in the /etc/passwd file are unique.#!/bin/bash echo "The Output for the Audit of Control 9.18 - Check for Duplicate User Names is"cat /etc/passwd | cut -f1 -d":" | /bin/sort -n | /usr/bin/uniq -c | while read x ; do [ -z "${x}" ] & then uids=`/bin/gawk -F: '($1 == n) { print $3 }' n=$2  /etc/passwd | xargs` echo "Duplicate User Name ($2): ${uids}" fidone
+This script checks to make sure that "reserved" UIDs (0-499 range) are not assigned to non-system (default) accounts.#!/bin/bash echo "The Output for the Audit of Control 9.17 - Check That Reserved UIDS Are Assigned to System Accounts is"defUsers="root bin daemon adm lp sync shutdown halt mail news uucp operator games gopher ftp nobody nscd vcsa rpc mailnull smmsp pcap ntp dbus avahi sshd rpcuser nfsnobody haldaemon avahi-autoipd distcache apache oprofile webalizer dovecot squid named xfs gdm sabayon exim"/bin/cat /etc/passwd | /bin/awk -F: '($3 < 500) { print $1" "$3 }' | while read user uid; do found=0 for tUser in ${defUsers} do if [ ${user} = ${tUser} ]; then found=1 fi done if [ $found -eq 0 ]; then echo "User $user has a reserved UID ($uid)." fi done
+This script checks to make sure that home directories assigned in the /etc/passwd file exist.#!/bin/bash echo "The Output for the Audit of Control 9.13 - Check That Defined Home Directories Exist is"defUsers="root bin daemon adm lp sync shutdown halt mail news uucp operator games gopher ftp nobody nscd vcsa rpc mailnull smmsp pcap ntp dbus avahi sshd rpcuser nfsnobody haldaemon avahi-autoipd distcache apache oprofile webalizer dovecot squid named xfs gdm sabayon" cat /etc/passwd | awk -F: '{ print $1 " " $6 }' | while read user dir; do found=0 for n in $defUsers do if [ "$user" = "$n" ] then found=1 break fi done if [ $found -eq 0 ] then if [ -z "${dir}" ]; then echo "User $user has no home directory." elif [ ! -d $dir ]; then echo "User $user home directory not found" fi fi done
+This script checks to make sure users own the home directory they are assigned to in the /etc/passwd file.#!/bin/bash echo "The Output for the Audit of Control 9.14 - Check User Home Directory Ownership is"defUsers="root bin daemon adm lp sync shutdown halt mail news uucp operator games gopher ftp nobody nscd vcsa rpc mailnull smmsp pcap ntp dbus avahi sshd rpcuser nfsnobody haldaemon avahi-autoipd distcache apache oprofile webalizer dovecot squid named xfs gdm sabayon"/usr/bin/cat /etc/passwd |  awk -F: '{ print $1 " " $6 }' | while read user dir; do found=0 for n in $defUsers do if [ "$user" = "$n" ] then found=1 break fi done if [ $found -eq "0" ] then if [ -d ${dir} ] then owner=`ls -ld $dir | sed -e 's/ */ /g' | cut -f3 -d" "` if [ "$owner" != "$user" ] then echo "Home directory for $user owned by $owner" fi fi fi done
+To verify the correct SSH setting, run the following command and verify that at least one commands output is as shown:# grep "^AllowUsers" /etc/ssh/sshd_config AllowUsers # grep "^AllowGroups" /etc/ssh/sshd_config AllowGroups # grep "^DenyUsers" /etc/ssh/sshd_config DenyUsers # grep "^DenyGroups" /etc/ssh/sshd_config DenyGroups
+To verify the correct SSH setting, run the following command and verify that the output is as shown:# grep -v "Ciphers" /etc/ssh/sshd_config Ciphers aes128-ctr,aes192-ctr,aes256-ctr
+To verify the correct SSH setting, run the following command and verify that the output is as shown:# grep "^Banner" /etc/ssh/sshd_configBanner
+To verify the correct SSH setting, run the following command and verify that the output is as shown:# grep "^ClientAliveInterval" /etc/ssh/sshd_config ClientAliveInterval 300# grep "^ClientAliveCountMax" /etc/ssh/sshd_config ClientAliveCountMax 0
+To verify the correct SSH setting, run the following command and verify that the output is as shown:# grep "^HostbasedAuthentication" /etc/ssh/sshd_config HostbasedAuthentication no
+To verify the correct SSH setting, run the following command and verify that the output is as shown:# grep "^IgnoreRhosts" /etc/ssh/sshd_config IgnoreRhosts yes
+To verify the correct SSH setting, run the following command and verify that the output is as shown:# grep "^LogLevel" /etc/ssh/sshd_config LogLevel INFO
+To verify the correct SSH setting, run the following command and verify that the output is as shown:# grep "^MaxAuthTries" /etc/ssh/sshd_config MaxAuthTries 4
+To verify the correct SSH setting, run the following command and verify that the output is as shown:# grep "^PermitEmptyPasswords" /etc/ssh/sshd_config PermitEmptyPasswords no
+To verify the correct SSH setting, run the following command and verify that the output is as shown:# grep "^PermitRootLogin" /etc/ssh/sshd_config PermitRootLogin no
+To verify the correct SSH setting, run the following command and verify that the output is as shown:# grep "^Protocol" /etc/ssh/sshd_configProtocol 2
+To verify the correct SSH setting, run the following command and verify that the output is as shown:# grep "^UsePrivilegeSeparation no" /etc/ssh/sshd_config(command should return no output)
+To verify the correct SSH setting, run the following command and verify that the output is as shown:# grep "^X11Forwarding" /etc/ssh/sshd_config X11Forwarding no
+To verify the correct SSH setting, run the following command and verify that the output is as shown:# grep PermitUserEnvironment /etc/ssh/sshd_config PermitUserEnvironment no
+Verify that /etc/hosts.deny exists and is configured to deny all hosts not explicitly listed in /etc/hosts.allow:# GREP "ALL: ALL" /ETC/HOSTS.DENYALL: ALL
+Verify that the system is registered by executing the following command:# yum check-update
+Verify that there is a /tmp file partition in the /etc/fstab file.# grep /tmp /etc/fstab
+dave
+
+
+
+
+
+
+
+
+
+
+
+# /sbin/modprobe -n -v cramfsinstall /bin/true# /sbin/lsmod | grep cramfs
+# /sbin/modprobe -n -v freevxfsinstall /bin/true# /sbin/lsmod | grep freexvfs
+# /sbin/modprobe -n -v hfsinstall /bin/true# /sbin/lsmod | grep hfs
+# /sbin/modprobe -n -v hfsplusinstall /bin/true# /sbin/lsmod | grep hfsplus
+# /sbin/modprobe -n -v jffs2install /bin/true# /sbin/lsmod | grep jffs2
+# /sbin/modprobe -n -v squashfsinstall /bin/true# /sbin/lsmod | grep squashfs
+# /sbin/modprobe -n -v udfinstall /bin/true# /sbin/lsmod | grep udf
+# chkconfig --list mctransmctrans 0: off 1: off 2: off 3: off 4: off 5: off 6: off
+# chkconfig --list rhnsd rhnsd: 0:off 1:off 2:off 3:off 4:off 5:off 6:off
+# chkconfig --list yum-updatesdyum-updatesd: 0:off 1:off 2:off 3:off 4:off 5:off 6:off
+For 64 bit systems perform the following command and ensure the output is as shown to determine if filesystem mounts are recorded.# grep mounts /etc/audit/audit.rules-a always,exit -F arch=b64 -S mount -F auid>=500 -F auid!=4294967295 -k mounts-a always,exit -F arch=b32 -S mount -F auid>=500 -F auid!=4294967295 -k mounts For 32 bit systems perform the following command and ensure the output is as shown to determine if filesystem mounts are recorded.# grep mounts /etc/audit/audit.rules-a always,exit -F arch=b32 -S mount -F auid>=500 -F auid!=4294967295 -k mounts
+For 64 bit systems, perform the following command and ensure the output is as shown to determine if file deletion events by user are recorded.# grep delete /etc/audit/audit.rules-a always,exit -F arch=b64 -S unlink -S unlinkat -S rename -S renameat -F auid>=500 -F auid!=4294967295 -k delete-a always,exit -F arch=b32 -S unlink -S unlinkat -S rename -S renameat -F auid>=500 -F auid!=4294967295 -k delete For 32 bit systems, perform the following command and ensure the output is as shown to determine if file deletion events by user are recorded.# grep delete /etc/audit/audit.rules-a always,exit -F arch=b32 -S unlink -S unlinkat -S rename -S renameat -F auid>=500 -F auid!=4294967295 -k delete
+For 64 bit systems, perform the following command and ensure the output is as shown to determine if permission modifications are being recorded.# grep perm_mod /etc/audit/audit.rules-a always,exit -F arch=b64 -S chmod -S fchmod -S fchmodat -F auid>=500 -F auid!=4294967295 -k perm_mod-a always,exit -F arch=b32 -S chmod -S fchmod -S fchmodat -F auid>=500 -F auid!=4294967295 -k perm_mod-a always,exit -F arch=b64 -S chown -S fchown -S fchownat -S lchown -F auid>=500 -F auid!=4294967295 -k perm_mod-a always,exit -F arch=b32 -S chown -S fchown -S fchownat -S lchown -F auid>=500 -F auid!=4294967295 -k perm_mod-a always,exit -F arch=b64 -S setxattr -S lsetxattr -S fsetxattr -S removexattr -S lremovexattr -S fremovexattr -F auid>=500 -F auid!=4294967295 -k perm_mod-a always,exit -F arch=b32 -S setxattr -S lsetxattr -S fsetxattr -S removexattr -S lremovexattr -S fremovexattr -F auid>=500 -F auid!=4294967295 -k perm_mod For 32 bit systems, perform the following command and ensure the output is as shown to determine if permission modifications are being recorded.# grep perm_mod /etc/audit/audit.rules-a always,exit -F arch=b32 -S chmod -S fchmod -S fchmodat -F auid>=500 -F auid!=4294967295 -k perm_mod-a always,exit -F arch=b32 -S chown -S fchown -S fchownat -S lchown -F auid>=500 -F auid!=4294967295 -k perm_mod-a always,exit -F arch=b32 -S setxattr -S lsetxattr -S fsetxattr -S removexattr -S lremovexattr -S fremovexattr -F auid>=500 -F auid!=4294967295 -k perm_mod
+On 64 bit systems, perform the following command and ensure the output is as shown to determine if there are unsuccessful attempts to access files.# grep access /etc/audit/audit.rules-a always,exit -F arch=b64 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EACCES -F auid>=500 -F auid!=4294967295 -k access-a always,exit -F arch=b32 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EACCES -F auid>=500 -F auid!=4294967295 -k access-a always,exit -F arch=b64 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EPERM -F auid>=500 -F auid!=4294967295 -k access-a always,exit -F arch=b32 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EPERM -F auid>=500 -F auid!=4294967295 -k access On 32 bit systems, perform the following command and ensure the output is as shown to determine if there are unsuccessful attempts to access files.# grep access /etc/audit/audit.rules-a always,exit -F arch=b32 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EACCES -F auid>=500 -F auid!=4294967295 -k access-a always,exit -F arch=b32 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EPERM -F auid>=500 -F auid!=4294967295 -k access
+On a 64 bit system, perform the following command and ensure the output is as shownto determine if events that modify the system's environment are recorded.# grep system-locale /etc/audit/audit.rules-a always,exit -F arch=b64 -S sethostname -S setdomainname -k system-locale-a always,exit -F arch=b32 -S sethostname -S setdomainname -k system-locale-w /etc/issue -p wa -k system-locale-w /etc/issue.net -p wa -k system-locale-w /etc/hosts -p wa -k system-locale-w /etc/sysconfig/network -p wa -k system-locale For 32 bit systems, perform the following command and ensure the output is as shown to determine if events that modify the system's environment are recorded.# grep system-locale /etc/audit/audit.rules-a always,exit -F arch=b32 -S sethostname -S setdomainname -k system-locale-w /etc/issue -p wa -k system-locale-w /etc/issue.net -p wa -k system-locale-w /etc/hosts -p wa -k system-locale-w /etc/sysconfig/network -p wa -k system-locale
+Perform the following to determine if /etc/grub.conf is configured to log processes that start prior to auditd.# grep "audit=1" /etc/grub.confMake sure each line that starts with kernel has the audit=1 parameter set.
+Perform the following to determine if administrator activity is recorded.# grep actions /etc/audit/audit.rules-w /var/log/sudo.log -p wa -k actions
+Perform the following to determine if AIDE is installed.# yum list aideaide.   installed
+Perform the following to determine if anacron is enabled.# chkconfig --list anacronanacron: 0:off 1:off 2:on 3:on 4:on 5:on 6:off
+Perform the following to determine if audit logs are retained.# grep max_log_file_action /etc/audit/auditd.confmax_log_file_action = keep_logs
+Perform the following to determine if audit logs are retained.# grep max_log_file_action /etc/audit/auditd.confmax_log_file_action = keep_logs
+Perform the following to determine if auditd is configured to notify the administrator and halt the system when audit logs are full.# grep space_left_action /etc/audit/auditd.confspace_left_action = email# grep action_mail_acct /etc/audit/auditd.confaction_mail_acct = root# grep admin_space_left_action /etc/audit/auditd.confadmin_space_left_action = halt
+Perform the following to determine if auditd is configured to notify the administrator and halt the system when audit logs are full.# grep space_left_action /etc/audit/auditd.confspace_left_action = email# grep action_mail_acct /etc/audit/auditd.confaction_mail_acct = root# grep admin_space_left_action /etc/audit/auditd.confadmin_space_left_action = halt
+Perform the following to determine if auditd is enabled.# chkconfig --list auditdauditd: 0: off 1: off 2: on 3: on 4: on 5: on 6: off
+Perform the following to determine if changes to /etc/sudoers are recorded.# grep scope /etc/audit/audit.rules-w /etc/sudoers -p wa -k scope
+Perform the following to determine if events that modify the system's mandatory access ontrols are recorded# grep MAC_policy /etc/audit/audit.rules-w /etc/selinux/ -p wa -k MAC-policy
+Perform the following to determine if events that modify user/group information are recorded.# grep identity /etc/audit/audit.rules-w /etc/group -p wa -k identity-w /etc/passwd -p wa -k identity-w /etc/gshadow -p wa -k identity-w /etc/shadow -p wa -k identity-w /etc/security/opasswd -p wa -k identity
+Perform the following to determine if events where the system date and/or time has been modified are captured.On a 64 bit system, perform the following command and ensure the output is as shown.# grep time_change /etc/audit/audit.rules-a always,exit -F arch=b64 -S adjtimex -S settimeofday -k time-change-a always,exit -F arch=b32 -S adjtimex -S settimeofday -S stime -k time-change-a always,exit -F arch=b64 -S clock_settime -k time-change-a always,exit -F arch=b32 -S clock_settime -k time-change-w /etc/localtime -p wa -k time-change# Execute the following command to restart auditd# pkill -P 1-HUP auditd On a 32 bit system, perform the following command and ensure the output is as shown.# grep time_change /etc/audit/audit.rules-a always,exit -F arch=b32 -S adjtimex -S settimeofday -S stime -k time-change-a always,exit -F arch=b32 -S clock_settime -k time-change-w /etc/localtime -p wa -k time-change# Execute the following command to restart auditd# pkill -P 1-HUP auditd
+Perform the following to determine if ICMP redirect messages will be rejected from known gateways.# /sbin/sysctl net.ipv4.conf.all.secure_redirectsnet.ipv4.conf.all.secure_redirects = 0# /sbin/sysctl net.ipv4.conf.default.secure_redirectsnet.ipv4.conf.default.secure_redirects = 0
+Perform the following to determine if kernel module loading and unloading is recorded.# grep modules /etc/audit/audit.rules-w /sbin/insmod -p x -k modules-w /sbin/rmmod -p x -k modules-w /sbin/modprobe -p x -k modules-a always,exit -S init_module -S delete_module -k modules
+Perform the following to determine if login and logout events are recorded.# grep logins /etc/audit/audit.rules-w /var/log/faillog -p wa -k logins-w /var/log/lastlog -p wa -k logins-w /var/log/tallylog -p -wa -k logins-w /var/log/btmp -p wa -k session
+Perform the following to determine if RFC-recommended source route validation is enabled.# /sbin/sysctl net.ipv4.conf.all.rp_filternet.ipv4.conf.all.rp_filter = 1# /sbin/sysctl net.ipv4.conf.default.rp_filternet.ipv4.conf.default.rp_filter = 1
+Perform the following to determine if SELinux is enabled at boot time. # grep SELINUX=enforcing /etc/selinux/configSELINUX=enforcing# /usr/sbin/sestatusSELinux status: enabledCurrent mode: enforcingMode from config file: enforcingPolicy from config file: targeted
+Perform the following to determine if session initiation information is collected.# grep session /etc/audit/audit.rules-w /var/run/utmp -p wa -k session-w /var/log/wtmp -p wa -k session
+Perform the following to determine if setroubleshoot is disabled.# chkconfig --list setroubleshootsetroubleshoot 0: off 1: off 2: off 3: off 4: off 5: off 6: off
+Perform the following to determine if the audit configuration is immutable.# grep "^-e 2" /etc/audit/audit.rules-e 2
+Perform the following to determine if the targeted policy is selected in the /etc/selinux/config file.# grep SELINUXTYPE=targeted /etc/selinux/configSELINUXTYPE=targeted# /usr/sbin/sestatusSELinux status: enabledCurrent mode: enforcingMode from config file: enforcingPolicy from config file: targeted Note: If your organization requires stricter policies, verify that they are selected by using the "grep" command on the /etc/selinux/config file.
+Perform the following to determine if there is a cron job scheduled to run the aide check.# crontab -u root -l | grep aide0 5 * * * /usr/sbin/aide --check
+Perform the following to determine if unconfined daemons are running on the system.# ps -eZ | egrep "initrc" | egrep -vw "tr|ps|egrep|bash|awk" | tr ':' ' ' | awk '{ print $NF }[no output produced]
+Perform the following to determine if users are not permitted to use cached credentials:# yum list pam_ccredspam_ccreds.
+Perform the following to determine if xinetd is installed on the system.# yum list xinetdxinted.
+Perform the following to determine the maximum size of the audit log files. # grep max_log_file /etc/audit/auditd.confmax_log_file = __
+Perform the following to determine the maximum size of the audit log files.# grep max_log_file /etc/audit/auditd.confmax_log_file = MB
+Perform the following to verify that SELinux is enabled at boot time:# grep selinux=0 /etc/grub.conf[no output produced]# grep enforcing=0 /etc/grub.conf[no output produced]
+Run the following command to review all installed packages. Note that this may be very time consuming and may be best scheduled via the cron utility. It is recommended that the output of this command be redirected to a file that can be reviewed later.# rpm -Va --nomtime --nosize --nomd5 --nolinkto > _
+Verify that an audit line for each setuid/setgid program identified in the find command appears in the audit file with the above attributes.
